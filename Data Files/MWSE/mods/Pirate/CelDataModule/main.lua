@@ -2,10 +2,10 @@
 CellNameTranslations = {}
 -- Локальные переменные
 local modName = "Модуль данных cel"
-local modVersion = "2.0.1"
+local modVersion = "2.0.2"
 local confPath = "CelDataModule"
 local defaultConfig = {
-            logLevel = "INFO",
+            logLevel = 3,
       }
 local config = mwse.loadConfig(confPath, defaultConfig)
 local log = mwse.Logger.new{
@@ -102,14 +102,16 @@ local function addSideBar(component)
 end
 
 local function registerMCM()
-    local template = mwse.mcm.createTemplate{ name = modName }
+    local template = mwse.mcm.createTemplate{ name = modName,
+    --headerImagePath = "textures/headerImageName.dds"
+    }
     template:saveOnClose(confPath, config)
     template:register()
 
-    local page = template:createSideBarPage { label = "Настройки", showReset = true }
+    local page = template:createSideBarPage { label = "Настройки", showReset = true, showDefaultSetting = true }
     addSideBar(page)
 
-page:createButton {
+    page:createButton {
         buttonText = "Обновить базу",
         description = "Обновить базу",
         callback = function()
@@ -118,39 +120,13 @@ page:createButton {
         end
     }
 
-    page:createDropdown{
-        label = "Уровень журнала",
-        description = "\z
-        Изменение уровня ведения журнала событий mwse.log. Рекомендуется использовать значение 'Warn' или 'Info', \z
-        если вы не занимаетесь отладкой. Каждый уровень включает в себя все сообщения предыдущего уровня.\n\z
-        Описание уровней:\n\n\z
-        \z
-        None: выключен, никакие события не будут записаны в журнал.\n\n\z
-        \z
-        Error: в журнал будут записаны сообщения об ошибках.\n\n\z
-        \z
-        Warn: в журнал будут записаны сообщения об ошибках и предупреждения.\n\n\z
-        \z
-        Info: в журнал будут записаны сообщения об ошибках, предупреждения и информация.\n\n\z
-        \z
-        Debug: в журнал будут записаны сообщения об ошибках, предупреждения, информация и отладочные сообщения. Вы можете заметить снижение производительности.\n\n\z
-        \z
-        Trace: будут записываться сообщения всех уровней. Файл журнала может быть трудно читаемым, рекомендуется использовать такой уровень ведения журнала событий для сообщения об ошибках автору мода.\z
-        \z",
+    page:createLogLevelOptions{
         defaultSetting = defaultConfig.logLevel,
-        showDefaultSetting = true,
-        options = {
-            { label = "Trace", value = "TRACE"},
-            { label = "Debug", value = "DEBUG"},
-            { label = "Info", value = "INFO"},
-            { label = "Warn", value = "WARN"},
-            { label = "Error", value = "ERROR"},
-            { label = "None", value = "NONE"},
-        },
-        variable =  mwse.mcm.createTableVariable{ id = "logLevel", table = config},
+        variable = mwse.mcm.createTableVariable{id = "logLevel", table = config},
         callback = function(self)
             log.level = self.variable.value
         end
     }
+
 end
 event.register("modConfigReady", registerMCM)
